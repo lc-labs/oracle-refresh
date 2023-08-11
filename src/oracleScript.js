@@ -13,9 +13,6 @@ import CollateralAbi from './abis/CollateralAbi'
 import OracleAbi from './abis/OracleAbi'
 import collateralPlugins from './plugins'
 
-// If a new fork is deployed we will have to update this address..
-const timeStampContract = '0x48Bf69757404ee1386a1683364a5C3f1CC0AA6ad'
-
 /**
  * This piece of code can be used to directly modify oracles in our forked envs.
  *
@@ -269,15 +266,7 @@ window.__reserveDevTools = async (tenderlyUrl = DEFAULT_TENDERLY_URL) => {
     ))
   )
 
-  console.log('provider', provider)
-
-  const timestamp =
-    BigInt(
-      await provider.call({
-        to: timeStampContract,
-        data: '0xb80777ea',
-      })
-    ) - 100n
+  const timestamp = BigInt(Math.floor(Date.now() / 1000))
 
   console.log(
     'Current timestamp on fork is ',
