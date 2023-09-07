@@ -37,6 +37,7 @@ const tokens = [
 
 const Actions = ({ rpc }) => {
   const [status, setStatus] = useState('')
+  const [blocks, setBlocks] = useState('10')
   const [account, setAccount] = useState('0x89eeA190083fD02c5bfE75E6dDaBF957F4bfFfc4')
 
   const handleRefresh = async () => {
@@ -54,9 +55,7 @@ const Actions = ({ rpc }) => {
   const handleFund = async () => {
     try {
       setStatus(LOADING)
-      const provider = new ethers.providers.JsonRpcProvider(
-        'https://rpc.tenderly.co/fork/846f8d2a-a423-46a7-8f70-3a62929c7ef5'
-      )
+      const provider = new ethers.providers.JsonRpcProvider(rpc)
       const amount = '0x21e19e0c9bab2400000'
       // const resp = await provider.send('tenderly_setErc20Balance', [
       //   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
@@ -74,11 +73,38 @@ const Actions = ({ rpc }) => {
     }
   }
 
+  const handleChangeBlock = async () => {
+    try {
+      setStatus(LOADING)
+      const provider = new ethers.providers.JsonRpcProvider(rpc)
+
+      await provider.send('evm_increaseBlocks', [
+        ethers.utils.hexValue(+blocks), // hex encoded number of blocks to increase
+      ])
+      setStatus('Blocks advanced!')
+    } catch (e) {
+      console.error('next', e)
+    }
+  }
+
   return (
     <div className="card" style={{ marginTop: 24 }}>
       <h3 className="mb-1">Fork actions</h3>
       <button className="mb-1" disabled={status === LOADING} onClick={handleRefresh}>
         Refresh oracles!
+      </button>
+      <hr />
+      <div className="mt-1">
+        <label>Advance blocks</label>
+        <input
+          placeholder="Number of blocks to advance"
+          value={blocks}
+          type="number"
+          onChange={(e) => setBlocks(e.target.value)}
+        />
+      </div>
+      <button className="mt-1" disabled={status === LOADING} onClick={handleChangeBlock}>
+        Advance blocks
       </button>
       <hr />
       <div className="mt-1">
@@ -98,9 +124,47 @@ const Actions = ({ rpc }) => {
   )
 }
 
+const TENDERLY_USER = 'Reserveslug'
+const TENDERLY_PROJECT = 'testnet'
+
+const CreateFork = ({ accessKey }) => {
+  const [msg, setMsg] = useState('')
+
+  const handleCreate = async () => {
+    setMsg('Loading...')
+    const result = await fetch(
+      `https://api.tenderly.co/api/v1/account/${TENDERLY_USER}/project/${TENDERLY_PROJECT}/fork`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          network_id: '1', // network you wish to fork
+          chain_config: {
+            chain_id: 3, // chain_id used in the forked environment
+          },
+        }),
+        headers: {
+          'X-Access-Key': accessKey,
+          'Content-type': 'application/json; charset=UTF-8',
+        },
+      }
+    ).then((response) => response.json())
+    const rpc = `https://rpc.tenderly.co/fork/${result.simulation_fork.id}`
+
+    setMsg(`Fork created!: ${rpc}`)
+  }
+
+  return (
+    <div className="card" style={{ marginTop: 24 }}>
+      <h3 className="mb-1">Create fork</h3>
+      <button onClick={handleCreate}>Create fork</button>
+      {!!msg && <div className="mt-1">{msg}</div>}
+    </div>
+  )
+}
+
 function App() {
   const [rpc, setRpc] = useState(import.meta.env.VITE_TENDERLY_URL || '')
-  // const [accessKey, setAccessKey] = useState(import.meta.env.VITE_TENDERLY_KEY || '')
+  const [accessKey, setAccessKey] = useState(import.meta.env.VITE_TENDERLY_KEY || '')
 
   return (
     <>
@@ -115,15 +179,17 @@ function App() {
             style={{ width: 420, textAlign: 'center' }}
           />
         </div>
-        {/* <div className="mt-1">
+        <div className="mt-1">
           <label>Access key</label>
           <input
+            type="password"
             placeholder="Input access key"
             value={accessKey}
             onChange={(e) => setAccessKey(e.target.value)}
           />
-        </div> */}
+        </div>
       </div>
+      <CreateFork accessKey={accessKey} />
       <Actions rpc={rpc} />
     </>
   )
