@@ -275,6 +275,9 @@ window.__reserveDevTools = async (tenderlyUrl = DEFAULT_TENDERLY_URL) => {
   )
 
   const updateOracleData = async (oracle, newPrice) => {
+    const providerMethod =
+      tenderlyUrl.indexOf('tenderly') !== -1 ? 'tenderly_setStorageAt' : 'hardhat_setStorageAt'
+
     if (oracle.chainLinkFeed == null) {
       console.error('No chainlink feed for', oracle.name)
       return
@@ -301,7 +304,7 @@ window.__reserveDevTools = async (tenderlyUrl = DEFAULT_TENDERLY_URL) => {
     for (let i = 40; i <= 45; i++) {
       const transmissionsSlot = hexZeroPad(hexValue(i), 32)
       const key = solidityKeccak256(['bytes32', 'bytes32'], [nthTransmission, transmissionsSlot])
-      await provider.send('tenderly_setStorageAt', [oracle.aggregator, key, newEntry])
+      await provider.send(providerMethod, [oracle.aggregator, key, newEntry])
     }
 
     const latestAnswer = await oracleContract.callStatic.latestAnswer().catch(() => null)
