@@ -68,7 +68,7 @@ const Actions = ({ rpc }) => {
           tokens.map((token) => provider.send('tenderly_setErc20Balance', [token, account, amount]))
         )
       } else {
-        await provider.send('hardhat_setBalance', [account, '0x1000'])
+        await provider.send('hardhat_setBalance', [account, '0x1000000000000000000000'])
       }
 
       setStatus('Balances added to account!')
