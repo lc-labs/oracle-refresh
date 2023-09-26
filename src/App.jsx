@@ -83,9 +83,16 @@ const Actions = ({ rpc }) => {
       setStatus(LOADING)
       const provider = new ethers.providers.JsonRpcProvider(rpc)
 
-      await provider.send('evm_increaseBlocks', [
-        ethers.utils.hexValue(+blocks), // hex encoded number of blocks to increase
-      ])
+      if (rpc.indexOf('tenderly') !== -1) {
+        await provider.send('evm_increaseBlocks', [
+          ethers.utils.hexValue(+blocks), // hex encoded number of blocks to increase
+        ])
+      } else {
+        await provider.send('hardhat_mine', [
+          ethers.utils.hexValue(+blocks), // hex encoded number of blocks to increase
+        ])
+      }
+
       setStatus('Blocks advanced!')
     } catch (e) {
       console.error('next', e)
