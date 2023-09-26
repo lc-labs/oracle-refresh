@@ -63,9 +63,14 @@ const Actions = ({ rpc }) => {
       //   amount,
       // ])
       // console.log('response', resp)
-      await Promise.all(
-        tokens.map((token) => provider.send('tenderly_setErc20Balance', [token, account, amount]))
-      )
+      if (rpc.indexOf('tenderly') !== -1) {
+        await Promise.all(
+          tokens.map((token) => provider.send('tenderly_setErc20Balance', [token, account, amount]))
+        )
+      } else {
+        await provider.send('hardhat_setBalance', [account, '0x1000'])
+      }
+
       setStatus('Balances added to account!')
     } catch (e) {
       setStatus('Error funding account')
