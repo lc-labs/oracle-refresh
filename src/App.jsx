@@ -37,6 +37,7 @@ const tokens = [
 
 const Actions = ({ rpc }) => {
   const [status, setStatus] = useState('')
+  const [seconds, setSeconds] = useState('86400')
   const [blocks, setBlocks] = useState('10')
   const [account, setAccount] = useState('0x89eeA190083fD02c5bfE75E6dDaBF957F4bfFfc4')
 
@@ -78,6 +79,28 @@ const Actions = ({ rpc }) => {
     }
   }
 
+  const handleChangeTime = async () => {
+    try {
+      setStatus(LOADING)
+      const provider = new ethers.providers.JsonRpcProvider(rpc)
+
+      const latestBlock = await provider.getBlock('latest')
+      const nextTimestamp = latestBlock.timestamp + Number(seconds)
+      console.log(latestBlock, nextTimestamp)
+
+      await provider.send('evm_setNextBlockTimestamp', [
+        ethers.utils.hexValue(+nextTimestamp), // hex encoded number of blocks to increase
+      ])
+      await provider.send('evm_mine', [])
+
+      setStatus('Time advanced!')
+    } catch (e) {
+      console.error('next', e)
+    }
+  }
+
+
+
   const handleChangeBlock = async () => {
     try {
       setStatus(LOADING)
@@ -104,6 +127,19 @@ const Actions = ({ rpc }) => {
       <h3 className="mb-1">Fork actions</h3>
       <button className="mb-1" disabled={status === LOADING} onClick={handleRefresh}>
         Refresh oracles!
+      </button>
+      <hr />
+      <div className="mt-1">
+        <label>Advance time (seconds)</label>
+        <input
+          placeholder="Number of seconds to advance"
+          value={seconds}
+          type="number"
+          onChange={(e) => setSeconds(e.target.value)}
+        />
+      </div>
+      <button className="mt-1" disabled={status === LOADING} onClick={handleChangeTime}>
+        Advance time
       </button>
       <hr />
       <div className="mt-1">
@@ -136,8 +172,8 @@ const Actions = ({ rpc }) => {
   )
 }
 
-const TENDERLY_USER = 'Reserveslug'
-const TENDERLY_PROJECT = 'testnet'
+// const TENDERLY_USER = 'Reserveslug'
+// const TENDERLY_PROJECT = 'testnet'
 
 const CreateFork = ({ accessKey }) => {
   const [msg, setMsg] = useState('')
@@ -145,7 +181,7 @@ const CreateFork = ({ accessKey }) => {
   const handleCreate = async () => {
     setMsg('Loading...')
     const result = await fetch(
-      `https://api.tenderly.co/api/v1/account/${TENDERLY_USER}/project/${TENDERLY_PROJECT}/fork`,
+      rpc,
       {
         method: 'POST',
         body: JSON.stringify({
