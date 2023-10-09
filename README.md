@@ -6,7 +6,7 @@ This repository is created to be used for updating chainlink oracles on a tender
 
 ```
 npm i
-npm dev
+npm run dev
 
 Open developer tools to watch status
 ```
