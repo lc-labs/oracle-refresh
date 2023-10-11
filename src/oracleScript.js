@@ -267,12 +267,7 @@ window.__reserveDevTools = async (tenderlyUrl = DEFAULT_TENDERLY_URL) => {
   )
 
   const { timestamp } = await provider.getBlock('latest')
-
-  console.log(
-    'Current timestamp on fork is ',
-    new Date(Number(timestamp) * 1000).toLocaleString(),
-    'according to the timestamp contract'
-  )
+  console.log('Current timestamp on fork is ', timestamp)
 
   const updateOracleData = async (oracle, newPrice) => {
     const providerMethod =
