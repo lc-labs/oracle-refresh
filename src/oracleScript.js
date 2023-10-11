@@ -266,7 +266,7 @@ window.__reserveDevTools = async (tenderlyUrl = DEFAULT_TENDERLY_URL) => {
     ))
   )
 
-  const timestamp = BigInt(Math.floor(Date.now() / 1000))
+  const { timestamp } = await provider.getBlock('latest')
 
   console.log(
     'Current timestamp on fork is ',
